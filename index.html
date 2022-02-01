@@ -2,11 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title></title>
+    <title>htmxxx</title>
   </head>
   <body>
     <script src="/node_modules/htmx.org/dist/htmx.min.js"></script>
-    <h1>Time on server is:</h1>
+    <h1>Time on server is</h1>
     <code hx-get="/hello" hx-trigger="load, mouseenter throttle:2s"> </code>
   </body>
+  <script>new EventSource('/event').onmessage = () => location.reload();</script>
 </html>
