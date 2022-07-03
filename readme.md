@@ -17,15 +17,9 @@ npm start
 ### auto-refresh
 
 ```sh
-# linux-only?
-while inotifywait -q index.html > /dev/null
-do
-  curl http://localhost:3000/refresh -f || break
-done
+while inotifywait -q index.html > /dev/null; do curl http://localhost:3000/refresh -f || break; sleep 1; done
 ```
-
 
 ## author
 
 balazs4
-
