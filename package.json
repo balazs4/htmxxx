@@ -8,6 +8,6 @@
   "author": "balazs4",
   "private": true,
   "dependencies": {
-    "htmx.org": "1.6.1"
+    "htmx.org": "1.7.0"
   }
 }
