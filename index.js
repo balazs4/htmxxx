@@ -32,11 +32,6 @@ require('http')
       return;
     }
 
-    if (req.url === '/') {
-      res.writeHead(308, { location: '/index.html' }).end();
-      return;
-    }
-
     const filename = req.url === '/' ? '/index.html' : req.url;
     const file = require('path').join('.', filename);
 
