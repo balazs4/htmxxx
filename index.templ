@@ -1,8 +1,18 @@
 package main
 
-templ index(name string) {
-	if name == "World" {
-		<h1>Hello { name } </h1>
-	}
-	<h1>Hi { name } </h1>
+templ index() {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<title>go + templ + htmx</title>
+		</head>
+		<body>
+			<form action="/" method="post">
+				<input type="text" name="email"/>
+				<input type="password" name="password"/>
+				<button type="submit">Submit</button>
+			</form>
+		</body>
+	</html>
 }
