@@ -1,17 +1,32 @@
 package main
 
+import "os"
+
 templ index() {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<title>go + templ + htmx</title>
+			<script src="/htmx.min.js"></script>
+			if os.Getenv("WATCH") == "1" {
+				<script>
+        const es = new EventSource("/.sigterm")
+        es.onmessage = function(){
+          setTimeout(() => {
+            location.reload();
+          }, 750);
+        }
+        </script>
+			}
 		</head>
 		<body>
-			<form action="/" method="post">
-				<input type="text" name="email"/>
-				<input type="password" name="password"/>
-				<button type="submit">Submit</button>
+			<form hx-trigger="submit" hx-post="/register" hx-swap="outerHTML">
+				<label for="username">Username:</label>
+				<input type="text" name="username"/>
+				<label for="email">Email:</label>
+				<input type="email" name="email"/>
+				<input type="submit" value="BOB!"/>
 			</form>
 		</body>
 	</html>
