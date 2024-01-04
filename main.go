@@ -7,10 +7,32 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
+type User struct {
+	Name       string
+	Email      string
+	Validation map[string]string
+}
+
+func NewUser(name, email string) *User {
+	return &User{
+		Name:       name,
+		Email:      email,
+		Validation: make(map[string]string, 0),
+	}
+}
+
+func (u *User) IsValid() bool {
+	return u.Validation["email"] == "" && u.Validation["name"] == ""
+}
+
 func main() {
+	var storage = make(map[string]User, 0)
+	storage["foo"] = *NewUser("foo", "foo@bar.com")
+
 	if os.Getenv("WATCH") == "1" {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGTERM)
@@ -21,6 +43,7 @@ func main() {
 			w.Header().Add("cache-control", "no-cache")
 
 			<-sigs
+
 			sigterm := fmt.Sprintf("data: SIGTERM pid %d \n\n", os.Getpid())
 			w.Write([]byte(sigterm))
 		})
@@ -32,12 +55,32 @@ func main() {
 		switch r.Method {
 
 		case http.MethodGet:
-			index().Render(context.Background(), w)
+			index(users(&storage, nil)).Render(context.Background(), w)
 
 		case http.MethodPost:
 			r.ParseForm()
-			fmt.Println(r.PostForm)
+			user := NewUser(r.PostForm.Get("name"), r.PostForm.Get("email"))
 
+			if htmx := r.Header.Get("hx-request"); htmx == "true" {
+				if _, exist := storage[user.Name]; exist == true {
+					user.Validation["name"] = "Username is already taken."
+				}
+
+				if strings.Contains(user.Email, "@") == false {
+					user.Validation["email"] = "Not valid email"
+				}
+
+				if user.IsValid() == false {
+					users(&storage, user).Render(context.Background(), w)
+					return
+				}
+
+				storage[user.Name] = *user
+				users(&storage, nil).Render(context.Background(), w)
+				return
+			}
+
+			index(users(&storage, nil)).Render(context.Background(), w)
 		}
 	})
 

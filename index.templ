@@ -2,32 +2,79 @@ package main
 
 import "os"
 
-templ index() {
+templ index(contents ...templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<title>go + templ + htmx</title>
 			<script src="/htmx.min.js"></script>
-			if os.Getenv("WATCH") == "1" {
-				<script>
-        const es = new EventSource("/.sigterm")
-        es.onmessage = function(){
-          setTimeout(() => {
-            location.reload();
-          }, 750);
-        }
-        </script>
-			}
+			<style>
+      @media (prefers-color-scheme: light) {
+        * { background: #ffffff; color: #000000; }
+      }
+      @media (prefers-color-scheme: dark) {
+        * { background: #000000; color: #ffffff; }
+        input { background: #333; color: #eee; }
+      }
+      </style>
 		</head>
 		<body>
-			<form hx-trigger="submit" hx-post="/register" hx-swap="outerHTML">
-				<label for="username">Username:</label>
-				<input type="text" name="username"/>
-				<label for="email">Email:</label>
-				<input type="email" name="email"/>
-				<input type="submit" value="BOB!"/>
-			</form>
+			for _,content := range contents {
+				@content
+			}
 		</body>
 	</html>
+	if os.Getenv("WATCH") == "1" {
+		@watch()
+	}
+}
+
+templ watch() {
+	<script>
+    new EventSource("/.sigterm").onmessage = function(){ setTimeout(() => { location.reload(); }, 750); }
+    </script>
+}
+
+templ users(users *map[string]User, user *User) {
+	<div id="users">
+		<form
+			hx-trigger="submit"
+			hx-post="/register"
+			hx-swap="outerHTML"
+			hx-target="#users"
+			hx-on::after-request=" if(event.detail.successful) this.reset()"
+		>
+			<label for="name">Username:</label>
+			<input
+				type="text"
+				name="name"
+				if user!= nil {
+					value={ user.Name }
+				}
+			/>
+			if user != nil && user.Validation["name"] != "" {
+				<span style="color: red;">{ user.Validation["name"] }</span>
+			}
+			<label for="email">Email:</label>
+			<input
+				type="email"
+				name="email"
+				if user != nil {
+					value={ user.Email }
+				}
+			/>
+			if user!=nil && user.Validation["email"] != "" {
+				<span style="color: red;">{ user.Validation["email"] }</span>
+			}
+			<input type="submit" value="BOB!"/>
+		</form>
+		<ul>
+			for _, u := range *users {
+				<li>
+					<p>{ u.Name } <a href={ templ.URL(u.Email) }>{ u.Email }</a></p>
+				</li>
+			}
+		</ul>
+	</div>
 }
