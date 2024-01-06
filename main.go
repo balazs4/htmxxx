@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"html/template"
 	"log"
@@ -11,6 +12,9 @@ import (
 	"strings"
 	"syscall"
 )
+
+//go:embed htmx.min.js
+var htmx embed.FS
 
 type User struct {
 	Name       string
@@ -158,9 +162,7 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/htmx.min.js", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "htmx.min.js")
-	})
+	http.Handle("/htmx.min.js", http.FileServer(http.FS(htmx)))
 
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
