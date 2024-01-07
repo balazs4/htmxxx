@@ -2,17 +2,46 @@ package html
 
 import (
 	"html/template"
-	"io"
 
 	"github.com/balazs4/htmxxx/types"
 )
 
-type UsersProps struct {
+type MainProps struct {
 	User  *types.User
 	Users *map[string]types.User
 }
 
-var users = template.Must(template.New("users").Parse(`
+type PageProps struct {
+	Watch bool
+	Main  MainProps
+}
+
+var Page = template.Must(template.New("page").Parse(
+	`
+{{ if .Watch }}
+<script> new EventSource("/.sigterm").onmessage = function(){ setTimeout(() => { location.reload(); }, 750); }</script>
+{{ end }}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <title>users</title>
+    <script src="/htmx.min.js"></script>
+    <style>
+    @media (prefers-color-scheme: light) {
+      * { background: #ffffff; color: #000000; }
+    }
+    @media (prefers-color-scheme: dark) {
+      * { background: #000000; color: #ffffff; }
+      input { background: #333; color: #eee; }
+    }
+    </style>
+  </head>
+  <body>
+  <header>{{ block "header" . }}{{end}}</header>
+
+  <main>{{ block "main" .Main }}
+
 	<div id="users">
 		<form
 			hx-trigger="submit"
@@ -37,8 +66,9 @@ var users = template.Must(template.New("users").Parse(`
     {{ end }}
 		</ul>
 	</div>
-`))
+  {{end}}</main>
 
-func Users(w io.Writer, p UsersProps) error {
-	return users.Execute(w, p)
-}
+  <footer>{{ block "footer" . }}{{end}}</footer>
+  </body>
+</html>
+`))

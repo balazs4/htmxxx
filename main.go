@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"embed"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -46,6 +44,7 @@ func main() {
 	storage["foo"] = *types.NewUser("foo", "foo@bar.com")
 
 	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("[%s] %s\n", r.Method, r.URL)
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
@@ -62,7 +61,9 @@ func main() {
 			storage[user.Name] = *user
 
 			if hx_request == true {
-				html.Users(w, html.UsersProps{nil, &storage})
+				if err := html.Page.ExecuteTemplate(w, "main", html.MainProps{nil, &storage}); err != nil {
+					fmt.Println(err)
+				}
 				return
 			}
 
@@ -71,23 +72,23 @@ func main() {
 		}
 
 		if hx_request == true {
-			html.Users(w, html.UsersProps{user, &storage})
+			if err := html.Page.ExecuteTemplate(w, "main", html.MainProps{user, &storage}); err != nil {
+				fmt.Println(err)
+			}
 			return
 		}
 
-		panic("TODO: invalid user no hx-request")
+		if err := html.Page.ExecuteTemplate(w, "page", html.PageProps{watch, html.MainProps{user, &storage}}); err != nil {
+			fmt.Println(err)
+		}
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("[%s] %s\n", r.Method, r.URL)
 
-		var buff bytes.Buffer
-		html.Users(&buff, html.UsersProps{nil, &storage})
-		html.Index(w,
-			html.IndexProps{
-				Body:  template.HTML(buff.String()),
-				Watch: watch,
-			})
+		if err := html.Page.ExecuteTemplate(w, "page", html.PageProps{watch, html.MainProps{nil, &storage}}); err != nil {
+			fmt.Println(err)
+		}
 	})
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
