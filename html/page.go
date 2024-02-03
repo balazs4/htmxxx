@@ -3,12 +3,12 @@ package html
 import (
 	"html/template"
 
-	"github.com/balazs4/htmxxx/types"
+	"github.com/balazs4/htmxxx/structs"
 )
 
 type MainProps struct {
-	User  *types.User
-	Users *map[string]types.User
+	User  *structs.User
+	Users *map[string]structs.User
 }
 
 type PageProps struct {

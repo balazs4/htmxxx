@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/balazs4/htmxxx/html"
-	"github.com/balazs4/htmxxx/types"
+	"github.com/balazs4/htmxxx/structs"
 )
 
 //go:embed htmx.min.js
@@ -40,8 +40,8 @@ func main() {
 		})
 	}
 
-	var storage = make(map[string]types.User, 0)
-	storage["foo"] = *types.NewUser("foo", "foo@bar.com")
+	var storage = make(map[string]structs.User, 0)
+	storage["foo"] = *structs.NewUser("foo", "foo@bar.com")
 
 	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("[%s] %s\n", r.Method, r.URL)
@@ -54,7 +54,7 @@ func main() {
 
 		r.ParseForm()
 
-		user := types.NewUser(r.PostForm.Get("name"), r.PostForm.Get("email"))
+		user := structs.NewUser(r.PostForm.Get("name"), r.PostForm.Get("email"))
 		user.Validate(&storage)
 
 		if user.IsValid() == true {
