@@ -53,7 +53,6 @@ func main() {
 		hx_request := r.Header.Get("hx-request") == "true"
 
 		r.ParseForm()
-
 		user := structs.NewUser(r.PostForm.Get("name"), r.PostForm.Get("email"))
 		user.Validate(&storage)
 
@@ -61,7 +60,8 @@ func main() {
 			storage[user.Name] = *user
 
 			if hx_request == true {
-				if err := html.Page.ExecuteTemplate(w, "main", html.MainProps{nil, &storage}); err != nil {
+				props := html.MainProps{nil, &storage}
+				if err := html.Page.ExecuteTemplate(w, "main", props); err != nil {
 					fmt.Println(err)
 				}
 				return
@@ -72,13 +72,15 @@ func main() {
 		}
 
 		if hx_request == true {
-			if err := html.Page.ExecuteTemplate(w, "main", html.MainProps{user, &storage}); err != nil {
+			props := html.MainProps{user, &storage}
+			if err := html.Page.ExecuteTemplate(w, "main", props); err != nil {
 				fmt.Println(err)
 			}
 			return
 		}
 
-		if err := html.Page.ExecuteTemplate(w, "page", html.PageProps{watch, html.MainProps{user, &storage}}); err != nil {
+		props := html.PageProps{watch, html.MainProps{user, &storage}}
+		if err := html.Page.ExecuteTemplate(w, "page", props); err != nil {
 			fmt.Println(err)
 		}
 	})
@@ -86,7 +88,8 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("[%s] %s\n", r.Method, r.URL)
 
-		if err := html.Page.ExecuteTemplate(w, "page", html.PageProps{watch, html.MainProps{nil, &storage}}); err != nil {
+		props := html.PageProps{watch, html.MainProps{nil, &storage}}
+		if err := html.Page.ExecuteTemplate(w, "page", props); err != nil {
 			fmt.Println(err)
 		}
 	})
