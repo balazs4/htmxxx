@@ -17,18 +17,12 @@ import (
 var htmx embed.FS
 
 func main() {
-	http.Handle("/htmx.min.js", http.FileServer(http.FS(htmx)))
-
-	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-	})
-
 	watch := os.Getenv("WATCH") == "1"
 	if watch == true {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGTERM)
 
-		http.HandleFunc("/.sigterm", func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc("GET /.sigterm", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("content-type", "text/event-stream")
 			w.Header().Add("connection", "keep-alive")
 			w.Header().Add("cache-control", "no-cache")
@@ -43,13 +37,12 @@ func main() {
 	var storage = make(map[string]structs.User, 0)
 	storage["foo"] = *structs.NewUser("foo", "foo@bar.com")
 
-	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("[%s] %s\n", r.Method, r.URL)
-		if r.Method != http.MethodPost {
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
+	http.Handle("GET /htmx.min.js", http.FileServer(http.FS(htmx)))
+	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	})
 
+	http.HandleFunc("POST /register", func(w http.ResponseWriter, r *http.Request) {
 		hx_request := r.Header.Get("hx-request") == "true"
 
 		r.ParseForm()
@@ -85,9 +78,7 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("[%s] %s\n", r.Method, r.URL)
-
+	http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		props := html.PageProps{watch, html.MainProps{nil, &storage}}
 		if err := html.Page.ExecuteTemplate(w, "page", props); err != nil {
 			fmt.Println(err)
