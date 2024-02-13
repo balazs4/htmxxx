@@ -43,37 +43,21 @@ func main() {
 	})
 
 	http.HandleFunc("POST /register", func(w http.ResponseWriter, r *http.Request) {
-		hx_request := r.Header.Get("hx-request") == "true"
-
 		r.ParseForm()
 		user := structs.NewUser(r.PostForm.Get("name"), r.PostForm.Get("email"))
 		user.Validate(&storage)
 
-		if user.IsValid() == true {
-			storage[user.Name] = *user
-
-			if hx_request == true {
-				props := html.MainProps{nil, &storage}
-				if err := html.Page.ExecuteTemplate(w, "main", props); err != nil {
-					fmt.Println(err)
-				}
-				return
-			}
-
-			http.Redirect(w, r, "/", http.StatusMovedPermanently)
-			return
-		}
-
-		if hx_request == true {
+		if user.IsValid() == false {
 			props := html.MainProps{user, &storage}
 			if err := html.Page.ExecuteTemplate(w, "main", props); err != nil {
 				fmt.Println(err)
 			}
-			return
+      return
 		}
 
-		props := html.PageProps{watch, html.MainProps{user, &storage}}
-		if err := html.Page.ExecuteTemplate(w, "page", props); err != nil {
+		storage[user.Name] = *user
+		props := html.MainProps{nil, &storage}
+		if err := html.Page.ExecuteTemplate(w, "main", props); err != nil {
 			fmt.Println(err)
 		}
 	})
